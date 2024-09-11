@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 const Login = () => {
+
   return (
     <div className='background'>
       <div className='LogContainer'>
@@ -10,6 +11,7 @@ const Login = () => {
         <input className='form-input' type='password'/>
         <button className='logBtn'><Link style={{textDecoration:"none"}} to={'/patients'}>Login</Link></button>
       </div>
+      
     </div>
   )
 }

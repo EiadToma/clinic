@@ -1,22 +1,18 @@
-import PresentIllness from "../Components/PresentIllness"
-import Related from "../Components/Related"
-import Recommendation from "../Components/Recommendation"
-import Management from "../Components/Management"
-import { useEffect } from "react"
-import { getFaq } from "../redux/FaqSlice"
-import { useDispatch } from "react-redux"
+import PresentIllness from "../Components/Doctor/PresentIllness"
+import Related from "../Components/Doctor/Related"
+import Recommendation from "../Components/Doctor/Recommendation"
+import Management from "../Components/Doctor/Management"
 import SubmitBtn from "../Components/SubmitBtn"
 const Faq = () => {
-  const dispatch=useDispatch()
-  useEffect(()=>{
-dispatch(getFaq())
-  })
+
   return (
 <>
 <div className="container">
-<div className='title-section'><div className='col'></div><p className='section-title'>Frequently Asked Questions</p></div>
+<div className='title-section sm:w-full'>
+<p className='section-title'>Frequently Asked Questions</p>
+</div>
 <PresentIllness/>
-<div style={{width:"49%"}}>
+<div className='media'>
   <Management/>
   <Related/>
 <Recommendation />

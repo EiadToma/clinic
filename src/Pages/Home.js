@@ -1,48 +1,27 @@
-import { useEffect,useState } from "react"
+import { useEffect } from "react"
 import { useDispatch ,useSelector} from "react-redux"
-import {getPatients,PatientsData,setpatientID} from "../redux/PatientSilce"
-import { Link } from "react-router-dom";
-import Navbar from "../Components/Navbar";
+import {getPatients,PatientsData} from "../redux/PatientSilce"
+import Table from "../Components/Doctor/Table";
+import {getHistoryLists} from '../redux/FaqSlice'
+import { getFaq } from "../redux/FaqSlice"
+import SearchSection from '../Components/SearchSection'
 const Patients = () => {
 const dispatch = useDispatch() 
 const data = useSelector(PatientsData)
+const searchData = useSelector(state=>state.user.searchResult?.data)
+
 console.log(data)
 useEffect(()=>{
    dispatch(getPatients()) 
+   dispatch(getHistoryLists())
+   dispatch(getFaq())
 },[])
-
-
  return (
-    <>      <Navbar/>
-    <div className='container'>
-        <table className="table">
-            <thead>
-            <tr className="table-row">
-            <th className="table-header">Name</th>
-            <th className="table-header">Phone number</th>
-            <th className="table-header">Gender</th>
-            <th className="table-header">Nationality</th>
-        </tr>
-            </thead>
-<tbody>
-        {data?.map(patient=>(
-        <tr className="table-row row" key={patient.id}>
-            <td className="table-header cell" >
-                <p style={{cursor:"pointer"}} >{patient?.name}</p>
-                <div className="table-drop">
-                    <Link className='table-link' to={`/patients/${patient.id}/faq`} onClick={()=>dispatch(setpatientID(patient?.id))}> NewCase</Link>
-                    <Link className="table-link" to={`/patients/${patient.id}/case`} onClick={()=>dispatch(setpatientID(patient?.id))}> Review</Link>
-                </div>
-                </td>
-            <td className="table-header cell">{patient?.phone_number}</td>
-            <td className="table-header cell">{patient?.gender===true?'Male':'Female'}</td>
-            <td className="table-header cell">{patient?.country}</td>
-        </tr>))}
-        </tbody>
-        </table>
-
-
-    </div>
+    <>
+        <div className='container '>
+          <SearchSection/>
+            <Table data = {searchData? searchData:data?.data}/>
+        </div>
     </>
 
   )

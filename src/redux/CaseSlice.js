@@ -1,9 +1,9 @@
 import { createSlice,createAsyncThunk  } from '@reduxjs/toolkit'
 import axios from 'axios'
 const initialState = {}
-const url ='https://clinic-backend-0lcl.onrender.com'
+const url = process.env.REACT_APP_API_URL;
 
-
+console.log(url)
 export const getCases = createAsyncThunk(
   "patient/getCases", 
   async () => {
@@ -24,7 +24,7 @@ export const CaseSlice = createSlice({
     createCase: (state,action) => {
       const {patientId,form}=action.payload
       for (const pair of form.entries()) {
-        console.log(pair[0], pair[1]);
+        console.log(pair[0] + pair[1])
       }
     axios.post(url+`/patient/${patientId}/recheck`,form).then(res=>console.log(res))
     .catch(error=>console.log(error))
