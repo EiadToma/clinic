@@ -1,16 +1,18 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateManage } from '../../redux/FaqSlice'
+import { MultiSelect } from 'react-multi-select-component'
 const Management = () => {
     const dispatch = useDispatch()
-    const lab = useSelector(state => state.faq?.managment.labratory_test_ids)
-    const labtests = useSelector(state => state.faq.faqData?.data.lab_tests)
+    const [labs,setLabs]=React.useState([])
+    const labtests = useSelector(state => state.faq.faqData?.data.data?.lab_tests)
+    const labelOptions = labtests?.map(item => ({ label: item.type, value: item.id })) || [];
     const IV = ['meropenem', 'flagyl', 'vancomycin', 'targocid', 'colistin', 'amikacin', 'rossflex', 'claforan', 'ciprofloxacine', 'clindamycin', 'linezolid']
     const PO = ['linezolid', 'clindamycin', 'flagyl', 'ofloxacin', 'levofloxacin', 'ceproz']
     return (
         <div className='form-container b-r'>
             <h3 className='title' style={{ marginTop: "0px" }}>The Plan of managment</h3>
-            <span className='line'></span>
+            <hr className="my-4 border-t-2 border-gray-300" />
             <div className='w-10/12 m-2 flex flex-col'>
                 <label className='label'>Status</label>
                 <select className='form-input' onChange={e => dispatch(updateManage({ fieldName: 'status', value: e.target.value }))}>
@@ -57,9 +59,16 @@ const Management = () => {
                 </select>        </div>
             <div className='w-10/12 m-2 flex flex-col'>
                 <label className='label'>The following laboratory tests are required</label>
-                <select className='form-input' onChange={e => dispatch(updateManage({ fieldName: 'labratory_test_ids', value: [...lab, e.target.value] }))}>
-                    {labtests?.map(item => (<option value={item.id} key={item.id}>{item.type}</option>))}
-                </select>
+                <MultiSelect
+                          options={labelOptions}
+                          value={labs}
+                          onChange={selectedOptions => {
+                            setLabs(selectedOptions);
+                            dispatch(updateManage({ fieldName: 'labratory_test_ids', value: selectedOptions.map(item => item.value) }))}
+                            
+                        }
+                          labelledBy={"Select"}
+                />
             </div>
 
         </div>

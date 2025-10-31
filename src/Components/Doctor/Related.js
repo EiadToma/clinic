@@ -6,7 +6,7 @@ const Related = () => {
   return (
     <div className='form-container b-r' style={{marginTop:"20px"}}>
     <h3 className='title'>Related consultations</h3>
-    <span className='line'></span>
+    <hr className="my-4 border-t-2 border-gray-300" />
     <div>
       <div className='w-10/12 m-2 flex flex-col'>
         <label className='label'>Attach the last vascular consultation</label>

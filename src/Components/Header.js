@@ -1,35 +1,118 @@
-import React from 'react'
-import { useDispatch } from 'react-redux'
-import { useSelector } from 'react-redux'
-import {changeMode} from '../redux/UserSlice'
+import React, { useState, useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { MdArrowBack, MdSettings } from "react-icons/md";
+import { useNavigate, useLocation } from "react-router-dom";
+import { changeMode, Logout } from "../redux/UserSlice";
+
 const Header = () => {
-  const dispatch = useDispatch()
-  const mode =useSelector(state=>state.user.Mode )
-  console.log(mode)
-  const ToggleMode = () =>{
-    dispatch(changeMode(mode === 'dark' ? 'light' : 'dark'));
+  const dispatch = useDispatch();
+  const mode = useSelector((state) => state.user.Mode);
+  const location = useLocation();
+  const navigate = useNavigate();
 
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const isDark = mode === "dark";
+
+  // Apply body background (⚠️ consider moving this to a layout wrapper)
+  useEffect(() => {
+    const bodyElement = document.body;
+    bodyElement.style.backgroundColor = isDark ? "#1f2937" : "#f9fafb"; // Tailwind gray-900 / gray-50
+  }, [isDark]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
     }
-    const bodyElements = document.getElementsByTagName('body');
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownOpen]);
 
-    // If there is only one body element in the document
-    const bodyElement = bodyElements[0];
-    
-    // You can then manipulate the body element as needed
-    mode==='dark'?bodyElement.style.backgroundColor = '#31363F':bodyElement.style.backgroundColor ='#e4e5e9'
+  const toggleMode = () => {
+    dispatch(changeMode(isDark ? "light" : "dark"));
+    setDropdownOpen(false);
+  };
+
+  const handleLogout = (e) => {
+    e.preventDefault();
+    dispatch(Logout());
+    navigate("/clinic");
+    setDropdownOpen(false);
+  };
+
+  const hideIcons = location.pathname === "/clinic" || location.pathname === "/";
+
   return (
-    <div className='header w-full'>
-    <div className=' inline-block  w-10/12   text-center '>DIABETES CLINIC MANAGEMENT SYSTEM</div> 
-    <div className=' inline-block w-2/12'>
-    <label className="flex items-center cursor-pointer align-middle ">
-    <input type="checkbox" value="" className="sr-only peer" onChange={ToggleMode}/>
-    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-    <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">{mode==="dark"?'Dark Mode':'Light Mode'}</span>
-     </label>
-    </div>
-    </div>
+    <div
+      className={`w-full flex items-center justify-between px-4 py-3 ${
+        isDark ? "bg-gray-800 text-white" : "bg-white text-gray-800"
+      } shadow-sm`}
+    >
+      {/* Back Icon */}
+      {!hideIcons ? (
+        <MdArrowBack
+          onClick={() => navigate(-1)}
+          className="text-2xl cursor-pointer hover:text-cyan-500 transition-colors"
+        />
+      ) : (
+        <div className="w-6" /> 
+      )}
 
-  )
-}
+      {/* Title */}
+      <h1 className="text-center flex-1 font-bold text-lg tracking-tight">
+        DIABETES CLINIC MANAGEMENT SYSTEM
+      </h1>
 
-export default Header
+      {/* Settings Dropdown */}
+      {!hideIcons ? (
+        <div className="relative" ref={dropdownRef}>
+          <MdSettings
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="text-2xl cursor-pointer hover:text-cyan-500 transition-colors"
+          />
+          {dropdownOpen && (
+            <div
+              className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg z-20 overflow-hidden ${
+                isDark ? "bg-gray-700 border border-gray-600" : "bg-white border border-gray-200"
+              }`}
+            >
+              <button
+                onClick={toggleMode}
+                className={`w-full px-4 py-3 text-left font-medium transition ${
+                  isDark
+                    ? "text-cyan-300 hover:bg-gray-600"
+                    : "text-cyan-700 hover:bg-gray-100"
+                }`}
+              >
+                {isDark ? "Light Mode" : "Dark Mode"}
+              </button>
+              <button
+                onClick={handleLogout}
+                className={`w-full px-4 py-3 text-left font-medium transition ${
+                  isDark
+                    ? "text-red-300 hover:bg-gray-600"
+                    : "text-red-600 hover:bg-gray-100"
+                }`}
+              >
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="w-6" /> 
+      )}
+    </div>
+  );
+};
+
+export default Header;

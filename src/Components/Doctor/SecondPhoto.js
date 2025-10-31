@@ -1,11 +1,12 @@
 import React from 'react'
 import { updatePresent } from '../../redux/FaqSlice'
 import { useSelector ,useDispatch} from 'react-redux'
-const SecondPhoto = ({positions}) => {
+const SecondPhoto = ({positions,mode}) => {
   if(positions===undefined || positions===null)
   positions=[]
   const dispatch = useDispatch()
     const selecteHandel=(e)=>{
+      if (mode === 'show') return; 
         const id =  e.nativeEvent.srcElement.id
         if(positions.find(item=>item==id))
         dispatch(updatePresent({fieldName:'lesion',nestedField:'positions2',value:positions.filter(item=>item!==id)}))

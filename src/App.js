@@ -7,6 +7,7 @@ import Login from './Pages/Login';
 import Secertaria from './Pages/Secertaria';
 import SecertariaTabel from './Components/Secertaria/SecertariaTabel';
 import ShowHistory from './Components/Doctor/ShowHistory'
+import PatientAppointments from './Components/Secertaria/PatientAppointments';
 import User_create from './Pages/User_create';
 import FullSearch from './Pages/FullSearch'
 import { Routes, Route, BrowserRouter} from 'react-router-dom'
@@ -26,6 +27,7 @@ function App() {
     <Route path="/clinic" element={<Login/>}/>
     <Route path="/patients" element={<Home/>}/> 
     <Route path='/secertariatabel' element={<SecertariaTabel/>} />
+    <Route path='/secertariatabel/:id/details' element={<PatientAppointments/>} />
     <Route path="patientcreate" element={<Patient_create/>} />
     <Route path="usercreate" element={<User_create/>} />
     <Route path="secertaria" element={<Secertaria/>} />

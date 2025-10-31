@@ -71,10 +71,14 @@ export const FaqSlice = createSlice({
   initialState,
   reducers: {
     sendFaqReq: (state,action) => {
-      const {patientId,form} = action.payload
+      const {id,form} = action.payload
 
-      axios.post(url+`/patient/${patientId}/case`,form).then(res=>console.log(res))
+      axios.post(url+`/patient/${id}/case`,form)
     .catch(error=>console.log(error))
+    },
+    DeleteFaq:(state,action)=>{
+
+      axios.delete(url+`/patient/${action.payload.patientId}/case/${action.payload.caseId}`)
     },
     updatePhotos:(state,action)=>{
       const { fieldName, value } = action.payload;
@@ -112,24 +116,24 @@ export const FaqSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(getFaq.pending, (state, action) => {
-      state.isLoading = true; 
-      state.hasError = false;
-    })
+        state.faqData.isLoading = true; 
+        state.faqData.hasError = false;
+      })
       .addCase(getFaq.fulfilled, (state, action) => {
-        state.faqData = action.payload;
-        state.isLoading = false;
-        state.hasError = false
+        state.faqData.data = action.payload;
+        state.faqData.isLoading = false;
+        state.faqData.hasError = false;
       })
       .addCase(getFaq.rejected, (state, action) => {
-        state.hasError = true
-        state.isLoading = false;
+        state.faqData.hasError = true;
+        state.faqData.isLoading = false;
       })
       .addCase(getHistoryLists.pending, (state, action) => {
         state.historyLists.isLoading = true; 
         state.historyLists.hasError = false;
       })
       .addCase(getHistoryLists.fulfilled, (state, action) => {
-          state.historyLists = action.payload;
+          state.historyLists.data = action.payload;
           state.historyLists.isLoading = false;
           state.historyLists.hasError = false
         })

@@ -6,7 +6,7 @@ const Recommendation = () => {
   return (
     <div className='form-container b-r' style={{marginTop:"20px"}} >
     <h3 className='title'>Recommendation</h3>
-    <span className='line'></span>
+    <hr className="my-4 border-t-2 border-gray-300" />
     <div className='w-10/12 m-2 flex flex-col'>
         <label className='label'>The patient should be referred to the hospital for</label>
         <select className='form-input' onChange={e=>dispatch(updateRecomm({fieldName:'hospitalization',value:e.target.value}))}>

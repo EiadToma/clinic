@@ -4,9 +4,9 @@ import { useSelector } from 'react-redux';
 import FirstPhoto from './FirstPhoto';
 const Modal = ({number,data}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const CasesData = useSelector(state=>state.patient.patient.cases?.data)
-  const poss =CasesData? CasesData[0]?.PresentIllness?.LesionIllness.positions1:[]
-  const positions =CasesData? CasesData[0]?.PresentIllness?.LesionIllness.positions2:[]
+  const CasesData = useSelector(state=>state.patient.patientInfo.data.Cases[0].PresentIllness.LesionIllness)
+  const poss =CasesData? CasesData.positions1:[]
+  const positions =CasesData? CasesData.positions2:[]
   const toggleModal = () => {
     setIsOpen(!isOpen);
   };
@@ -52,7 +52,7 @@ const Modal = ({number,data}) => {
                 </button>
               </div>
               <div className="w-fit space-y-4 ">
-                {data==='second'?<SecondPhoto positions={positions}/>:<FirstPhoto poss={poss}/>}
+                {data==='second'?<SecondPhoto mode='show' positions={positions}/>:<FirstPhoto mode='show' poss={poss}/>}
               </div>
 
             </div>

@@ -4,14 +4,14 @@ import { useDispatch ,useSelector} from 'react-redux'
 import { sendFaqReq } from '../redux/FaqSlice'
 const SubmitBtn = () => {
   const state =useSelector(state=>state.faq)
+  const [notification, setNotification] = useState(null)
   const patientId = useSelector(state=>state.patient.patient.id)
-  console.log(patientId)
   const dispatch = useDispatch()
   // const title = useSelector(state=>state.faq.created.status)
   const [isCaseCreated,setIsCaseCreated]=useState(false)
   // {isCaseCreated && <SuccessToaster title={title?"Case Created Successfully!":'Processing...'} />}
 
-    const sendfaq=()=>{
+    const sendfaq=async()=>{
 
     const form = new FormData;
     const related_consultation =JSON.stringify(state.consultations)
@@ -28,11 +28,27 @@ const SubmitBtn = () => {
     form.append('related_consultation_attachment',state.related_consultation_attachment)
     form.append('plan_of_managment',plan_of_managment)
     form.append('recommendation',recommendation)
-    dispatch(sendFaqReq({form,patientId}))
-
+    const result = await dispatch(sendFaqReq({form,patientId}));
+    if (result.meta.requestStatus === 'fulfilled') {
+      setNotification({ type: 'success', message: 'FAQ case created!' });
+    } else {
+      const { status, message } = result.payload;
+      setNotification({
+        type: 'error',
+        message: `Error ${status}: ${message}`,
+      });
+    }
+    setTimeout(() => setNotification(null), 5000)
   }
+
 return (
     <div className=' m-9'>
+      {notification && (
+        <SuccessToaster
+          title={notification.type === 'success' ? notification.message : `Error: ${notification.message}`}
+          color={notification.type === 'success'?'green':'red'}
+        />
+      )}
       <button className='Submit-btn' onClick={()=>sendfaq()}>
         Save patient Info</button>
         </div>

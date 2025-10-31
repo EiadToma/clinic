@@ -1,7 +1,10 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { MultiSelect } from 'react-multi-select-component';
+import { getFaq } from '../redux/FaqSlice';
 import { useState } from 'react';
-import axios from 'axios';
+import PatientsTable from '../Components/TestTabel'
+import { fullSearch } from '../redux/UserSlice';
+import SuccessToast from '../Components/SuccessToaster'
 const SearchPage = () => {
   const [gender, setGender] = useState(null);
   const [main, setMain] = useState([]);
@@ -15,19 +18,26 @@ const SearchPage = () => {
   const [clinicalClassification, setClinicalClass] = useState([]);
   const [infectionPosition, setInfectionPosition] = useState({})
   const [iwgdf, setIwgdf] = useState('')
+  const [minSinbad, setMinSindbad] = useState(null)
+  const [maxSinbad, setMaxSindbad] = useState(null)
+  const [minYear, setMinYear] = useState(null)
+  const [maxYear, setMaxYear] = useState(null)
+  const [minBirthYear, setMinBirthYear] = useState(null)
+  const [maxBirthYear, setMaxBirthYear] = useState(null)
+  const [months, setMonths] = useState([])
   const [sinbad, setSindbad] = useState({ site: '', Ischemia: '', Neropathy: '', bacterial: '', Area: '', Depth: '' })
   const [vascular, setVascular] = useState({ rpp: '', lpp: '', ldp: '', rdp: '', lpd: '', rpd: '', ldd: '', rdd: '', rabi: '', labi: '', })
-  const [diability, setDisability] = useState('')
+  const [disability, setDisability] = useState('')
   const [status, setStatus] = useState('')
   const [needVascular, setNeedVascular] = useState('')
   const [vascularProcedure, setVascularProcedure] = useState('')
   const [patientToHospital, setPatientToHospital] = useState('')
-  const [htn, setHtn] = useState(false)
-  const [renal, setRenal] = useState(false)
-  const [smoking, setSmoking] = useState(false)
-  const [hyper, setHyper] = useState(false)
-  const [disabled, setDisabled] = useState(false)
-  const [allergic, setAllergic] = useState(false)
+  const [htn, setHtn] = useState(null)
+  const [renal, setRenal] = useState(null)
+  const [smoking, setSmoking] = useState(null)
+  const [hyper, setHyper] = useState(null)
+  const [disabled, setDisabled] = useState(null)
+  const [allergic, setAllergic] = useState(null)
   const [amputation, setAmputation] = useState([])
   const [cardioVascular, setCardioVascular] = useState([])
   const [anticougualent, setAnticougualent] = useState([])
@@ -35,37 +45,41 @@ const SearchPage = () => {
 
   //
   const dispatch = useDispatch();
-  const Lists = useSelector(state => state.faq.faqData?.data);
-  const clinical = useSelector(state => state.faq?.faqData?.data.classificaations);
-  const historyList = useSelector(state => state.faq.history);
+  const searching = useSelector(state => state.user.fullSearch.isLoading)
+  const result = useSelector(state => state.user.fullSearch.data)
+  const Lists = useSelector(state => state.faq.faqData?.data?.data);
+
   const historylist = useSelector(state => state.faq.historyLists?.data)
   const amputaionList = historylist.amputations?.map(item => ({ label: item.type, value: item.id })) || []
-  const anticougualentData = useSelector(state => state.faq.faqData?.data.anticougualent_drugs)
-  const anticougualentList = anticougualentData?.map(item => ({ label: item.name, value: item.id })) || []
   const cardiovascular_drugs = historylist.cardiovascular_drugs?.map(item => ({ label: item.name, value: item.id })) || []
   const diabetes_drugs = historylist.diabetes_drugs?.map(item => ({ label: item.name, value: item.id })) || []
   //
+  if (!Lists)
+    dispatch(getFaq())
+
   const lesionList = Lists?.lesions?.map(item => ({ label: item.type, value: item.id })) || [];
   const deformities = Lists?.deformities?.map(item => ({ label: item.type, value: item.id })) || [];
-  const clinicalList = clinical?.map(item => ({ label: item.type, value: item.id })) || [];
-  const causesList = Lists.causes?.map(item => ({ label: item.cause, value: item.id })) || [];
-  const historyOptions = historyList?.map(item => ({ label: item.name, value: item.id })) || [];
+  const causesList = Lists?.causes?.map(item => ({ label: item.cause, value: item.id })) || [];
+  const clinicalList = Lists?.classificaations?.map(item => ({ label: item.type, value: item.id })) || [];
+  const anticougualentList = Lists?.anticougualent_drugs?.map(item => ({ label: item.name, value: item.id })) || [];
   const pulsList = ['Normal', 'Weak', 'Abscent']
   const dopplerList = ['Normal', 'Acceptable', 'Weak', 'Abscent']
+  const disabilities = ['walked befor and now', 'used to walk but not now', 'has not been walking for a long time', 'disabled patient', 'has not walked for while and now he is walking']
 
+  console.log(gender)
   const searchParam = {
     mainLesionIds: main.map(option => option.value).join(","),
     secondaryLesionIds: second.map(option => option.value).join(","),
     lesionCauseIds: causes.map(option => option.value).join(","),
-    gender: '',
+    gender: gender,
     thermo: thermo,
     neuro: nero,
     mino: mino,
-    minBirthdayYear: '',
-    minYear: '',
-    maxYear: '',
-    months: '',
-    maxBirthdayYear: '',
+    minBirthdayYear: minBirthYear,
+    minYear: minYear,
+    maxYear: maxYear,
+    months: months.map(option => option.value).join(","),
+    maxBirthdayYear: maxBirthYear,
     clinical_classification_id: clinicalClassification.map(option => option.value).join(","),
     iwgdf_classification: iwgdf,
     rpp: vascular.rpp,
@@ -78,8 +92,8 @@ const SearchPage = () => {
     rdd: vascular.rdd,
     rabi: vascular.rabi,
     labi: vascular.labi,
-    minSinbad: '',
-    maxSinbad: '',
+    minSinbad: minSinbad,
+    maxSinbad: maxSinbad,
     leftDeformityId: deformaty1.map(option => option.value).join(","),
     rightDeformityId: deformaty2.map(option => option.value).join(","),
     amputations: amputation.map(option => option.value).join(","),
@@ -93,40 +107,24 @@ const SearchPage = () => {
     htn: htn,
     renal_impair: renal
   }
-
   const handleSubmit = async () => {
-
     const filteredSearchParam = Object.fromEntries(
-      Object.entries(searchParam).filter(([key, value]) => value !== '')
+      Object.entries(searchParam).filter(([key, value]) => value !== '' && value !== null)
     );
-    const response = await axios.get('https://clinic-backend-0lcl.onrender.com/patient/cases/search', {
-      params: filteredSearchParam
-    }).then(response => {
-      console.log(response.data);
-    })
-    console.log(response)
+    dispatch(fullSearch(filteredSearchParam))
   };
-  console.log(searchParam)
+  console.log(result)
   return (
+
     <div className='form-container rounded w-10/12 m-auto mb-5'>
       <h3 className='title'>Search Criteria</h3>
+      {searching && <SuccessToast title={'Searching..'} />}
       <span className='line'></span>
       <div className='h-fit w-full flex flex-row '>
         <div className='w-1/2  border-r-2 border-gray-300'>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Gender:</label>
-            <div className="flex items-center">
-              <label className="mr-2">
-                <input type="checkbox" checked={gender === 1} onChange={(e) => setGender(e.target.checked ? 1 : null)} className="mr-1"
-                /> Male
-              </label>
-              <label>
-                <input type="checkbox" checked={gender === 0} onChange={(e) => setGender(e.target.checked ? 0 : null)} className="mr-1" /> Female
-              </label>
-            </div>
-          </div>
+          <h5 className='title'>Lesion status</h5>
           <div className='w-8/12 m-2 inline-block flex-col'>
-            <label className='label'>Type(s) of the main lesion</label>
+            <label  >Type(s) of the main lesion</label>
             <MultiSelect
               options={lesionList}
               value={main}
@@ -135,7 +133,7 @@ const SearchPage = () => {
             />
           </div>
           <div className='w-8/12 m-2 inline-block flex-col'>
-            <label className='label'>Secondary Lesion</label>
+            <label  >Secondary Lesion</label>
             <MultiSelect
               options={lesionList}
               value={second}
@@ -145,7 +143,7 @@ const SearchPage = () => {
           </div>
 
           <div className='w-8/12 m-2 flex flex-col'>
-            <label className='label'>Suspected Direct Cause(s) of the lesion</label>
+            <label  >Suspected Direct Cause(s) of the lesion</label>
             <MultiSelect
               options={causesList}
               value={causes}
@@ -155,21 +153,21 @@ const SearchPage = () => {
           </div>
 
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>Deformities</label>
-            <div className='flex flex-row align-bottom'>
+            <label  >Deformities</label>
+            <div className='flex flex-row p-0 align-bottom'>
               <MultiSelect
                 options={deformities}
                 value={deformaty1}
                 onChange={(selectedOptions) => setDeformaty1(selectedOptions)}
                 labelledBy={"Select"}
-                className='form-select'
+                className=' p-0 w-2/5  mr-1'
               />
               <MultiSelect
                 options={deformities}
                 value={deformaty2}
                 onChange={(selectedOptions) => setDeformaty2(selectedOptions)}
                 labelledBy={"Select"}
-                className='form-select'
+                className='p-0 w-2/5 ml-1 mr-1'
               />
             </div>
           </div>
@@ -252,6 +250,7 @@ const SearchPage = () => {
               <div className='nervous-item'>
                 <label className=' w-1/3'>Minofilament test</label>
                 <select onChange={(e) => setMino(e.target.value)} className={'w-1/3'}>
+                  <option disabled selected>Nothing selected</option>
                   <option>Normal</option>
                   <option>Abnormal</option>
                   <option>Abscent</option>
@@ -260,6 +259,7 @@ const SearchPage = () => {
               <div className='nervous-item'>
                 <label className=' w-1/3'>neurothesiometer</label>
                 <select onChange={(e) => setNero(e.target.value)} className={'w-1/3'}>
+                  <option disabled selected>Nothing selected</option>
                   <option>Normal</option>
                   <option>Mild neuropathy </option>
                   <option>Moderate neuropathy</option>
@@ -269,6 +269,7 @@ const SearchPage = () => {
               <div className='nervous-item'>
                 <label className=' w-1/3'>thermo meter</label>
                 <select onChange={(e) => setThermo(e.target.value)} className={'w-1/3'} >
+                  <option disabled selected>Nothing selected</option>
                   <option>Normal</option>
                   <option>Abnormal</option>
                 </select>
@@ -276,7 +277,7 @@ const SearchPage = () => {
             </div>
           </div>
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>Clinical Classification</label>
+            <label  >Clinical Classification</label>
             <MultiSelect
               options={clinicalList}
               value={clinicalClassification}
@@ -285,14 +286,14 @@ const SearchPage = () => {
             />
           </div>
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>Disability</label>
+            <label  >Disability</label>
             <select className='form-input' onChange={(e) => setDisability(e.target.value)} >
               <option value="" disabled selected style={{ color: "darkgray", opacity: '0.5' }}>Nothing selected</option>
-              {/* {disabilities.map(item=>(<option key={item}>{item}</option>))} */}
+              {disabilities.map(item => (<option key={item}>{item}</option>))}
             </select>
           </div>
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>Status</label>
+            <label  >Status</label>
             <select className='form-input' onChange={(e) => setStatus(e.target.value)} >
               <option value="" disabled selected style={{ color: "darkgray", opacity: '0.5' }}>Nothing selected</option>
               <option>Observation</option>
@@ -302,7 +303,7 @@ const SearchPage = () => {
             </select>
           </div>
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>Need of vascular procedure</label>
+            <label  >Need of vascular procedure</label>
             <select className='form-input' onChange={(e) => setNeedVascular(e.target.value)} >
               <option value="" disabled selected style={{ color: "darkgray", opacity: '0.5' }}>Nothing selected</option>
               <option>Advisable</option>
@@ -312,7 +313,7 @@ const SearchPage = () => {
             </select>
           </div>
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>The vascular procedure</label>
+            <label  >The vascular procedure</label>
             <select className='form-input' onChange={(e) => setVascularProcedure(e.target.value)}>
               <option value="" disabled selected style={{ color: "darkgray", opacity: '0.5' }}>Nothing selected</option>
               <option>Unaffordable</option>
@@ -323,7 +324,7 @@ const SearchPage = () => {
             </select>
           </div>
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>The patient should be referred to the hospital for</label>
+            <label  >The patient should be referred to the hospital for</label>
             <select className='form-input' onChange={(e) => setPatientToHospital(e.target.value)} >
               <option value="" disabled selected style={{ color: "darkgray", opacity: '0.5' }}>Nothing selected</option>
               <option>Closed follow up</option>
@@ -334,7 +335,7 @@ const SearchPage = () => {
             </select>
           </div>
           <div className='w-10/12 m-2 flex flex-col' >
-            <label className='label'> Position of the Infection</label>
+            <label  > Position of the Infection</label>
             <div className='flex flex-row'  >
               <select className='form-select'>
                 <option value="" disabled selected style={{ color: "darkgray", opacity: '0.5' }}>Nothing selected</option>
@@ -370,7 +371,38 @@ const SearchPage = () => {
 
           <h5 className='title'> SinBad Classification</h5>
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>Site</label>
+            <label className="label">Min Sinbad</label>
+            <select
+              value={minSinbad || ""}
+              onChange={(e) => setMinSindbad(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            >
+              <option value="">Select Min Sinbad</option>
+              {[...Array(7).keys()].map((num) => (
+                <option key={num} value={num}>
+                  {num}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className='w-10/12 m-2 flex flex-col'>
+            <label className="label">Max Sinbad</label>
+            <select
+              value={maxSinbad || ""}
+              onChange={(e) => setMaxSindbad(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            >
+              <option value="">Select Max Sinbad</option>
+              {[...Array(7).keys()].map((num) => (
+                <option key={num} value={num}>
+                  {num}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className='w-10/12 m-2 flex flex-col'>
+            <label  >Site</label>
             <select className='form-input' >
               <option value="" disabled selected style={{ color: "darkgray", opacity: '0.5' }}>Nothing selected</option>
               <option value={0}>ForeFoot</option>
@@ -378,7 +410,7 @@ const SearchPage = () => {
             </select>
           </div>
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>Ischemia</label>
+            <label  >Ischemia</label>
             <select className='form-input' >
               <option value="" disabled selected style={{ color: "darkgray", opacity: '0.5' }}>Nothing selected</option>
               <option value={0}>bedal blood flow intact:at least one pulse palpable</option>
@@ -386,7 +418,7 @@ const SearchPage = () => {
             </select>
           </div>
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>Neropathy</label>
+            <label  >Neropathy</label>
             <select className='form-input' >
               <option value="" disabled selected style={{ color: "darkgray", opacity: '0.5' }}>Nothing selected</option>
               <option value={0}>Protective sensation intact</option>
@@ -394,7 +426,7 @@ const SearchPage = () => {
             </select>
           </div>
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>bacterial Infection</label>
+            <label  >bacterial Infection</label>
             <select className='form-input'>
               <option value="" disabled selected style={{ color: "darkgray", opacity: '0.5' }}>Nothing selected</option>
               <option value={0}>none</option>
@@ -402,7 +434,7 @@ const SearchPage = () => {
             </select>
           </div>
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>Area ulcer</label>
+            <label  >Area ulcer</label>
             <select className='form-input' >
               <option value="" disabled selected style={{ color: "darkgray", opacity: '0.5' }}>Nothing selected</option>
               <option value={0}>{'<'}1cm²</option>
@@ -410,7 +442,7 @@ const SearchPage = () => {
             </select>
           </div>
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>Depth</label>
+            <label  >Depth</label>
             <select className='form-input' >
               <option value="" disabled selected style={{ color: "darkgray", opacity: '0.5' }}>Nothing selected</option>
               <option value={0}>Skin,subcutaneous,tissue</option>
@@ -421,7 +453,7 @@ const SearchPage = () => {
           <h5 className='title'>History</h5>
 
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>Cardiovascular</label>
+            <label  >Cardiovascular</label>
             <MultiSelect
               options={cardiovascular_drugs}
               value={cardioVascular}
@@ -430,7 +462,7 @@ const SearchPage = () => {
             />
           </div>
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>Anticougualent</label>
+            <label  >Anticougualent</label>
             <MultiSelect
               options={anticougualentList}
               value={anticougualent}
@@ -439,7 +471,7 @@ const SearchPage = () => {
             />
           </div>
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>Diabites drugs</label>
+            <label  >Diabites drugs</label>
             <MultiSelect
               options={diabetes_drugs}
               value={diabites}
@@ -449,7 +481,7 @@ const SearchPage = () => {
           </div>
 
           <div className='w-10/12 m-2 flex flex-col'>
-            <label className='label'>Amputaion</label>
+            <label  >Amputaion</label>
             <MultiSelect
               options={amputaionList}
               value={amputation}
@@ -457,35 +489,127 @@ const SearchPage = () => {
               labelledBy={"Select"}
             />
           </div>
-          <div className='w-10/12 m-2 flex flex-row justify-between ' >
-            <label className={` text-3xl font-medium leading-normal m-2 break-words `}>HTN</label>
-            <input className='form-input' onChange={() => setHtn(!htn)} type='checkbox' style={{ scale: "1.5" }} />
+          <div className='w-10/12 m-2 flex flex-row justify-between items-center ' >
+            <label className={` text-3xl w-1/3 font-medium leading-normal m-2 break-words `}>HTN</label>
+            <button className={`bg-gray-300 h-8 rounded p-1 ${htn === true ? 'bg-green-200' : ''}`} onClick={() => setHtn(true)}>Exists</button>
+            <button className={`bg-gray-300 h-8 rounded p-1 ${htn === false ? 'bg-green-200' : ''}`} onClick={() => setHtn(false)}>Absent</button>
           </div>
-          <div className='w-10/12 m-2 flex flex-row justify-between' >
-            <label className={` text-3xl font-medium leading-normal m-2 break-words `}>Renal impair</label>
-            <input className='form-input' onChange={() => setRenal(!renal)} type='checkbox' style={{ scale: "1.5" }} />
-          </div>
-          <div className='w-10/12 m-2 flex flex-row justify-between' >
-            <label className={` text-3xl font-medium leading-normal m-2 break-words `}>smoking</label>
-            <input className='form-input' onChange={() => setSmoking(!smoking)} type='checkbox' style={{ scale: "1.5" }} />
-          </div>
-          <div className='w-10/12 m-2 flex flex-row justify-between' >
-            <label className={` text-3xl font-medium leading-normal m-2 break-words`}>Hyperlipemia</label>
-            <input className='form-input' onChange={() => setHyper(!hyper)} type='checkbox' style={{ scale: "1.5" }} />
-          </div>
-          <div className='w-10/12 m-2 flex flex-row  justify-between' >
-            <label className={` text-3xl font-medium leading-normal m-2 break-words `}> Disabled</label>
-            <input className='form-input' type='checkbox' onChange={() => setDisabled(!disabled)} style={{ scale: "1.5" }} />
-          </div>
-          <div className='w-10/12 m-2 flex flex-row justify-between '>
-            <label className={` text-3xl font-medium leading-normal m-2 break-words`}> Allergic</label>
-            <input className='form-input' type='checkbox' onChange={() => setAllergic(!allergic)} style={{ scale: "1.5" }} />
-          </div>
+          <div className='w-10/12 m-2 flex flex-row justify-between items-center  ' >
+            <label className={` text-3xl  w-1/3 font-medium leading-normal m-2 break-words `}>Renal impair</label>
+            <button className={`bg-gray-300 h-8 rounded p-1 ${renal === true ? 'bg-green-200' : ''}`} onClick={() => setRenal(true)}>Exists</button>
+            <button className={`bg-gray-300 h-8 rounded p-1 ${renal === false ? 'bg-green-200' : ''}`} onClick={() => setRenal(false)}>Absent</button>      </div>
+          <div className='w-10/12 m-2 flex flex-row justify-between items-center  ' >
+            <label className={` text-3xl  w-1/3 font-medium leading-normal m-2 break-words `}>smoking</label>
+            <button className={`bg-gray-300 h-8 rounded p-1 ${smoking === true ? 'bg-green-200' : ''}`} onClick={() => setSmoking(true)}>Exists</button>
+            <button className={`bg-gray-300 h-8 rounded p-1 ${smoking === false ? 'bg-green-200' : ''}`} onClick={() => setSmoking(false)}>Absent</button>      </div>
+          <div className='w-10/12 m-2 flex flex-row justify-between items-center ' >
+            <label className={` text-3xl  w-1/3 font-medium leading-normal m-2 break-words`}>Hyperlipemia</label>
+            <button className={`bg-gray-300 h-8 rounded p-1 ${hyper === true ? 'bg-green-200' : ''}`} onClick={() => setHyper(true)}>Exists</button>
+            <button className={`bg-gray-300 h-8 rounded p-1 ${hyper === false ? 'bg-green-200' : ''}`} onClick={() => setHyper(false)}>Absent</button>     </div>
+          <div className='w-10/12 m-2 flex flex-row  justify-between items-center  ' >
+            <label className={` text-3xl  w-1/3 font-medium leading-normal m-2 break-words `}> Disabled</label>
+            <button className={`bg-gray-300 h-8 rounded p-1 ${disabled === true ? 'bg-green-200' : ''}`} onClick={() => setDisabled(true)}>Exists</button>
+            <button className={`bg-gray-300 h-8 rounded p-1 ${disabled === false ? 'bg-green-200' : ''}`} onClick={() => setDisabled(false)}>Absent</button>     </div>
+          <div className='w-10/12 m-2 flex flex-row justify-between items-center '>
+            <label className={` text-3xl  w-1/3 font-medium leading-normal m-2 break-words`}> Allergic</label>
+            <button className={`bg-gray-300 h-8 rounded p-1 ${allergic === true ? 'bg-green-200' : ''}`} onClick={() => setAllergic(true)}>Exists</button>
+            <button className={`bg-gray-300 h-8 rounded p-1 ${allergic === false ? 'bg-green-200' : ''}`} onClick={() => setAllergic(false)}>Absent</button>    </div>
+        </div>
+
+      </div>
+      <h5 className="title pt-2 text-lg font-semibold text-gray-800">General</h5>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-3">
+
+        {/* Min Year */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Min Year</label>
+          <input
+            type="number"
+            value={minYear || ""}
+            onChange={(e) => setMinYear(e.target.value)}
+            className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
+
+        {/* Max Year */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Max Year</label>
+          <input
+            type="number"
+            value={maxYear || ""}
+            onChange={(e) => setMaxYear(e.target.value)}
+            className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
+
+        {/* Min Birth Year */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Min Birth Year</label>
+          <input
+            type="number"
+            value={minBirthYear || ""}
+            onChange={(e) => setMinBirthYear(e.target.value)}
+            className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
+
+        {/* Max Birth Year */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Max Birth Year</label>
+          <input
+            type="number"
+            value={maxBirthYear || ""}
+            onChange={(e) => setMaxBirthYear(e.target.value)}
+            className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
+
+        {/* Months */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Months</label>
+          <select
+            multiple
+            onChange={(e) =>
+              setMonths([...e.target.selectedOptions].map(option => option.value))
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          >
+            {[
+              'January', 'February', 'March', 'April', 'May', 'June',
+              'July', 'August', 'September', 'October', 'November', 'December'
+            ].map((month, i) => (
+              <option key={month} value={i + 1}>{month}</option>
+            ))}
+          </select>
         </div>
       </div>
 
-      <button onClick={handleSubmit} className='bg-green-600 border border-red-400 p-2'>Search</button>
-      
+      {/* Gender */}
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+        <div className="flex space-x-2">
+          <button
+            type="button"
+            onClick={() => setGender(gender === true ? null : true)}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm sm:text-sm transition-colors
+        ${gender === true ? 'bg-green-200 border-green-400' : 'border-gray-300 hover:bg-gray-100'}`}
+          >
+            Male
+          </button>
+          <button
+            type="button"
+            onClick={() => setGender(gender === false ? null : false)}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm sm:text-sm transition-colors
+        ${gender === false ? 'bg-green-200 border-green-400' : 'border-gray-300 hover:bg-gray-100'}`}
+          >
+            Female
+          </button>
+        </div>
+      </div>
+
+      <button onClick={handleSubmit} className=' w-48 h-12 transition-all duration-500 block mt-5 m-auto px-4 py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700'>Search</button>
+      <PatientsTable />
     </div>
   );
 }

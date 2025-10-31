@@ -1,18 +1,22 @@
-import { configureStore } from '@reduxjs/toolkit'
-import CaseSlice from './CaseSlice'
-import  FaqSlice from './FaqSlice'
-import PatientSilce from './PatientSilce'
-import  SecertariaSlice  from './Secertaria'
-import UserSlice from './UserSlice'
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
+import FaqSlice from './FaqSlice';
+import PatientSlice from './PatientSlice';
+import SecertariaSlice from './Secertaria';
+import UserSlice from './UserSlice';
+
+// Combine all slices into a single root reducer
+const rootReducer = combineReducers({
+  faq: FaqSlice,
+  patient: PatientSlice,
+  user: UserSlice,
+  secertaria: SecertariaSlice,
+});
+
+// Create the store
 export const store = configureStore({
-  reducer: {
-    faq:FaqSlice,
-    patient:PatientSilce,
-    case:CaseSlice,
-    user:UserSlice,
-    secertaria:SecertariaSlice
-  },
-  middleware:(getDefaultMiddleware)=>getDefaultMiddleware({
-    serializableCheck:false
-  })
-})
+  reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
+});
